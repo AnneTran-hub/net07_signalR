@@ -1,0 +1,23 @@
+@inherits LayoutComponentBase
+
+<div class="d-flex flex-column min-vh-100">
+    <header class="admin-header d-flex align-items-center justify-content-between bg-dark text-white px-4 py-3">
+        <a href="/admin/product-management" class="navbar-brand text-white fw-bold mb-0"><span class="brand-cube">📦</span><span>Cybersoft store</span></a>
+        <span class="admin-name">Admin</span>
+    </header>
+
+    <div class="d-flex flex-grow-1">
+        <aside class="admin-sidebar bg-dark text-white p-3">
+            <nav class="nav flex-column">
+                <NavLink class="nav-link text-white" href="/admin/product-management" Match="NavLinkMatch.Prefix">
+                    ♟ Product Management
+                </NavLink>
+                <a class="nav-link text-white" href="#">♥ User Management</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main flex-grow-1">
+            @Body
+        </main>
+    </div>
+</div>

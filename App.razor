@@ -1,0 +1,11 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly">
+    @*  neu tim duoc @page tuong ung thi *@
+    <Found Context="routeData">
+        @*  routerview : render componen khớp với @page *@
+        <RouteView DefaultLayout="typeof(MainLayout)" RouteData="@routeData" />
+    </Found>
+    @* neeu khong tim duoc @page tuong ung thi hien thi phan notfound *@
+    <NotFound>
+            <p>Xin lỗi , trang không tồn tại</p>
+    </NotFound>
+</Router>

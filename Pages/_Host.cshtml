@@ -1,0 +1,44 @@
+﻿@page "/"
+@namespace btb23.Pages
+@using Microsoft.AspNetCore.Components.Web
+@*  bật tag hepler ở bên dưới *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@* quản lý với blazor *@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cybersoft Store</title>
+    <base href="~/" />
+
+    <component type = "typeof(HeadOutlet)" render-mode="ServerPrerendered"></component>
+    @*HeadOutlet: hỗ trợ đổi tên title của từng @page bằng <PageTitle> </PageTitle> *@    @* BOOTSTRAP CSS *@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    
+    <link href="css/site.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    @* BOOTSTRAP JS *@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+
+    <script src="_framework/blazor.server.js"></script>
+
+    @* SignalR JS client: powers the live product-list sync across /home and /admin/product-management *@
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+    <script src="js/productHub.js"></script>
+</body>
+
+</html>

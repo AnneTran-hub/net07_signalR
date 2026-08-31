@@ -1,0 +1,27 @@
+@namespace btb23.Shared
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark px-0 py-1">
+    <a class="navbar-brand fw-bold" href="/home">Store</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#storeNav">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="storeNav">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <NavLink class="nav-link" href="/home" Match="NavLinkMatch.All">Home</NavLink>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="#">Link</a></li>
+            <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Dropdown</a><ul class="dropdown-menu"><li><a class="dropdown-item" href="/home">Products</a></li></ul></li>
+        </ul>
+        <form class="d-flex" @onsubmit="Search" @onsubmit:preventDefault>
+            <input class="form-control form-control-sm me-2" placeholder="Search" @bind="searchTerm" />
+            <button class="btn btn-outline-success btn-sm" type="submit">Search</button>
+        </form>
+    </div>
+</nav>
+
+@code {
+    private string searchTerm = string.Empty;
+    private void Search() => Navigation.NavigateTo($"/home?search={Uri.EscapeDataString(searchTerm)}");
+}

@@ -1,0 +1,154 @@
+@page "/admin/product-management"
+@implements IAsyncDisposable
+@inject IProductService ProductService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Product management</PageTitle>
+
+<nav aria-label="breadcrumb" class="mb-2"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/admin/product-management">Product management</a></li><li class="breadcrumb-item active">Add Product</li></ol></nav>
+<h2 class="mb-2">Product management</h2>
+<button class="btn btn-success mb-2" @onclick="GoAdd">Add new product</button>
+
+<div class="input-group mb-2">
+    <input class="form-control" placeholder="Search product..." @bind="searchTerm" @bind:event="oninput" @onkeyup="HandleKeyUp" />
+    <button class="btn btn-success" @onclick="ApplySearch">Search</button>
+</div>
+
+<table class="table table-striped align-middle mb-2">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Image</th>
+            <th>Price</th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in PagedProducts)
+        {
+            <tr>
+                <td>@product.Id</td>
+                <td><div class="product-thumb @product.Image" role="img" aria-label="@product.Name"></div></td>
+                <td>@product.Price.ToString("0")</td>
+                <td class="text-nowrap"><button class="btn btn-danger btn-sm me-2" @onclick="() => DeleteProduct(product.Id)">Del</button><button class="btn btn-success btn-sm" @onclick="() => GoEdit(product.Id)">Edit</button></td>
+            </tr>
+        }
+
+        @if (!PagedProducts.Any())
+        {
+            <tr><td colspan="4" class="text-center text-muted">Không có sản phẩm nào.</td></tr>
+        }
+    </tbody>
+</table>
+
+@if (TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+            </li>
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                var pageNumber = i;
+                <li class="page-item @(currentPage == pageNumber ? "active" : "")">
+                    <button class="page-link" @onclick="() => GoToPage(pageNumber)">@pageNumber</button>
+                </li>
+            }
+            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+            </li>
+        </ul>
+    </nav>
+}
+
+@code {
+    private const int PageSize = 9;
+    private List<ProductDto> allProducts = new();
+    private string searchTerm = "";
+    private string appliedSearch = "";
+    private int currentPage = 1;
+    private DotNetObjectReference<ProductManagement>? _dotNetRef;
+
+    protected override void OnInitialized() => LoadProducts();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("productHub.start", _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnProductsChanged()
+    {
+        LoadProducts();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadProducts()
+    {
+        allProducts = ProductService.GetAll().ToList();
+        currentPage = Math.Clamp(currentPage, 1, Math.Max(1, TotalPages));
+    }
+
+    private IEnumerable<ProductDto> FilteredProducts =>
+        allProducts.Where(p => string.IsNullOrWhiteSpace(appliedSearch) ||
+                                p.Name.Contains(appliedSearch, StringComparison.OrdinalIgnoreCase));
+
+    private int TotalPages => (int)Math.Ceiling(FilteredProducts.Count() / (double)PageSize);
+
+    private List<ProductDto> PagedProducts =>
+        FilteredProducts.Skip((currentPage - 1) * PageSize).Take(PageSize).ToList();
+
+    private void ApplySearch()
+    {
+        appliedSearch = searchTerm;
+        currentPage = 1;
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplySearch();
+        }
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page < 1 || page > TotalPages)
+        {
+            return;
+        }
+
+        currentPage = page;
+    }
+
+    private void GoAdd() => Nav.NavigateTo("/admin/product");
+
+    private void GoEdit(int id) => Nav.NavigateTo($"/admin/product/{id}");
+
+    private async Task DeleteProduct(int id)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Xoá sản phẩm này?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await ProductService.DeleteAsync(id);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef is not null)
+        {
+            try { await JS.InvokeVoidAsync("productHub.stop"); } catch { }
+            _dotNetRef.Dispose();
+        }
+    }
+}

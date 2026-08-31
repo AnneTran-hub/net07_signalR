@@ -1,0 +1,102 @@
+@page "/admin/product"
+@page "/admin/product/{Id:int}"
+@inject IProductService ProductService
+@inject NavigationManager Nav
+
+<PageTitle>@(IsEdit ? "Edit Product" : "Add Product")</PageTitle>
+
+<nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/product-management">Product management</a></li>
+        <li class="breadcrumb-item active">@(IsEdit ? "Edit Product" : "Add Product")</li>
+    </ol>
+</nav>
+
+<h2 class="mb-2">@(IsEdit ? "Edit Product" : "Add Product")</h2>
+
+<EditForm Model="model" OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+
+    <div class="mb-1">
+        <label class="form-label">Name:</label>
+        <InputText class="form-control" @bind-Value="model.Name" />
+        <ValidationMessage For="@(() => model.Name)" />
+    </div>
+
+    <div class="mb-1">
+        <label class="form-label">Alias:</label>
+        <InputText class="form-control" @bind-Value="model.Alias" />
+        <ValidationMessage For="@(() => model.Alias)" />
+    </div>
+
+    <div class="mb-1">
+        <label class="form-label">Price:</label>
+        <InputNumber class="form-control" @bind-Value="model.Price" />
+        <ValidationMessage For="@(() => model.Price)" />
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Description:</label>
+        <InputTextArea class="form-control" rows="4" @bind-Value="model.Description" />
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+        <button type="submit" class="btn btn-primary">@(IsEdit ? "Save" : "Add Product")</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+
+<a href="/admin/product-management">&lt;&lt; Goback</a>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private ProductDto model = new();
+
+    private bool IsEdit => Id.HasValue;
+
+    protected override void OnParametersSet()
+    {
+        if (Id.HasValue)
+        {
+            var existing = ProductService.GetById(Id.Value);
+            if (existing is null)
+            {
+                Nav.NavigateTo("/admin/product-management");
+                return;
+            }
+
+            model = new ProductDto
+            {
+                Id = existing.Id,
+                Name = existing.Name,
+                Alias = existing.Alias,
+                Price = existing.Price,
+                Category = existing.Category,
+                Image = existing.Image,
+                Description = existing.Description
+            };
+        }
+        else
+        {
+            model = new ProductDto();
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (IsEdit)
+        {
+            await ProductService.UpdateAsync(model);
+        }
+        else
+        {
+            await ProductService.AddAsync(model);
+        }
+
+        Nav.NavigateTo("/admin/product-management");
+    }
+
+    private void Cancel() => Nav.NavigateTo("/admin/product-management");
+}
